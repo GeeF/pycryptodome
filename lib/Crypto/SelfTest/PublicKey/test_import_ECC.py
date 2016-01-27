@@ -159,9 +159,19 @@ class TestImport(unittest.TestCase):
         self.assertEqual(ref_public, key)
 
 
+class TestExport(unittest.TestCase):
+
+    def test_export_public_der(self):
+        key_file = load_file("ecc_p256_public.der")
+
+        encoded = ref_public._export_subjectPublicKeyInfo()
+        self.assertEqual(key_file, encoded)
+
+
 def get_tests(config={}):
     tests = []
     tests += list_test_cases(TestImport)
+    tests += list_test_cases(TestExport)
     return tests
 
 if __name__ == '__main__':

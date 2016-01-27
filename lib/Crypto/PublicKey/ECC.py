@@ -31,7 +31,7 @@
 import struct
 import binascii
 
-from Crypto.Util.py3compat import bord, tobytes, b, tostr
+from Crypto.Util.py3compat import bord, tobytes, b, tostr, bchr
 
 from Crypto.Math.Numbers import Integer
 from Crypto.Random import get_random_bytes
@@ -40,6 +40,7 @@ from Crypto.Util.asn1 import (DerObjectId, DerOctetString, DerSequence,
 
 from Crypto.IO import PKCS8, PEM
 from Crypto.PublicKey import (_expand_subject_public_key_info,
+                              _create_subject_public_key_info,
                               _extract_subject_public_key_info)
 
 
@@ -320,6 +321,19 @@ class EccKey(object):
 
     def public_key(self):
         return EccKey(curve="P-256", point=self.pointQ)
+
+    def _export_subjectPublicKeyInfo(self):
+
+        # Uncompressed form
+        order_bytes = _curve.order.size_in_bytes()
+        public_key = (bchr(4) +
+                      self.pointQ.x.to_bytes(order_bytes) +
+                      self.pointQ.y.to_bytes(order_bytes))
+
+        unrestricted_oid = "1.2.840.10045.2.1"
+        return _create_subject_public_key_info(unrestricted_oid,
+                                               public_key,
+                                               DerObjectId(_curve.oid))
 
 
 def generate(**kwargs):
