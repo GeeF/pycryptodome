@@ -335,6 +335,29 @@ class EccKey(object):
                                                public_key,
                                                DerObjectId(_curve.oid))
 
+    def _export_private_der(self):
+
+        # ECPrivateKey ::= SEQUENCE {
+        #           version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+        #           privateKey     OCTET STRING,
+        #           parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+        #           publicKey  [1] BIT STRING OPTIONAL
+        #    }
+
+        # Public key - uncompressed form
+        order_bytes = _curve.order.size_in_bytes()
+        public_key = (bchr(4) +
+                      self.pointQ.x.to_bytes(order_bytes) +
+                      self.pointQ.y.to_bytes(order_bytes))
+
+        result = DerSequence([
+                        1,
+                        DerOctetString(self.d.to_bytes(order_bytes)),
+                        DerObjectId(_curve.oid, explicit=0),
+                        DerBitString(public_key, explicit=1)
+                        ]).encode()
+        return result
+
 
 def generate(**kwargs):
     """Generate a new private key on the given curve.

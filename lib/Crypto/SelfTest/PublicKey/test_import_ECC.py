@@ -167,6 +167,12 @@ class TestExport(unittest.TestCase):
         encoded = ref_public._export_subjectPublicKeyInfo()
         self.assertEqual(key_file, encoded)
 
+    def test_export_private_der(self):
+        key_file = load_file("ecc_p256_private.der")
+
+        encoded = ref_private._export_private_der()
+        self.assertEqual(key_file, encoded)
+
 
 def get_tests(config={}):
     tests = []
