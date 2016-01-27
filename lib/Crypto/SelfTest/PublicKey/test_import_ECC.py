@@ -173,6 +173,12 @@ class TestExport(unittest.TestCase):
         encoded = ref_private._export_private_der()
         self.assertEqual(key_file, encoded)
 
+    def test_export_private_pkcs8_clear(self):
+        key_file = load_file("ecc_p256_private_p8_clear.der")
+
+        encoded = ref_private._export_pkcs8()
+        self.assertEqual(key_file, encoded)
+
 
 def get_tests(config={}):
     tests = []

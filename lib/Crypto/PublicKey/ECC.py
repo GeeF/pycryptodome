@@ -335,7 +335,9 @@ class EccKey(object):
                                                public_key,
                                                DerObjectId(_curve.oid))
 
-    def _export_private_der(self):
+    def _export_private_der(self, include_ec_params=True):
+
+        assert self.has_private()
 
         # ECPrivateKey ::= SEQUENCE {
         #           version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
@@ -350,12 +352,22 @@ class EccKey(object):
                       self.pointQ.x.to_bytes(order_bytes) +
                       self.pointQ.y.to_bytes(order_bytes))
 
-        result = DerSequence([
-                        1,
-                        DerOctetString(self.d.to_bytes(order_bytes)),
-                        DerObjectId(_curve.oid, explicit=0),
-                        DerBitString(public_key, explicit=1)
-                        ]).encode()
+        seq = [ 1,
+                DerOctetString(self.d.to_bytes(order_bytes)),
+                DerObjectId(_curve.oid, explicit=0),
+                DerBitString(public_key, explicit=1) ]
+
+        if not include_ec_params:
+            del seq[2]
+
+        return DerSequence(seq).encode()
+
+    def _export_pkcs8(self):
+        unrestricted_oid = "1.2.840.10045.2.1"
+        private_key = self._export_private_der(include_ec_params=False)
+        result = PKCS8.wrap(private_key,
+                            unrestricted_oid,
+                            key_params=DerObjectId(_curve.oid))
         return result
 
 
